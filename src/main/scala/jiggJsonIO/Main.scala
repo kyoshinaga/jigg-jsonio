@@ -1,13 +1,11 @@
-package myPractice
+package jiggJsonIO
 
 import scala.io.Source
 import scala.collection.mutable.{ ArrayBuffer, StringBuilder }
 import scala.xml._
 
-object XMLPractice {
+object Main {
   def main(args: Array[String]): Unit = {
-    val filename: String = "../sampleData/annotated.xml"
-    
-    println(JSONUtil.toJSON(filename))
+    println("Test for json4s")
   }
 }

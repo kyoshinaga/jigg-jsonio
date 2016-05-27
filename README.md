@@ -1,1 +1,1 @@
-# comainu-scala
+# JSON I/O for jigg
