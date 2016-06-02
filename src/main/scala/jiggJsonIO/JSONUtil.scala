@@ -3,10 +3,12 @@ package jiggJsonIO
 import java.io._
 
 import scala.xml._
-import scala.collection.mutable.StringBuilder
+
+import scala.collection.mutable.{StringBuilder, ArrayBuffer}
 import scala.io.Source
 
 import org.json4s._
+import org.json4s.DefaultFormats
 import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods._
 
@@ -134,6 +136,54 @@ object JSONUtil {
     parse(sb.toString)
   }
 
-//  def toXML(json: JValue): Node
+  def toXML(json: JValue): Node = {
+    implicit val formats = DefaultFormats
 
+    val jsonList = json.extract[Map[String,Any]].toList
+
+    generateXML(jsonList)
+
+  }
+
+  private def generateXML(x: List[(String, Any)]): Node ={
+    var tagString = ""
+    var textString  = ""
+    val attributeList = new ArrayBuffer[(String, String)]
+    val nodeSeq = new ArrayBuffer[Node]
+    var hasChildFlag = false
+    var hasTextFlag = false
+
+    for (i <- x){
+      if (i._1 == ".tag")
+        tagString = i._2.toString
+      else if (i._1 == "text"){
+        hasTextFlag = true
+        textString = i._2.toString
+      }
+      else if (i._1 == ".child"){
+        hasChildFlag = true
+        for (j <- i._2.asInstanceOf[List[Map[String,Any]]])
+        nodeSeq += generateXML(j.toList)
+      }
+      else
+        attributeList += (i._1.toString -> i._2.toString)
+    }
+
+    val node = hasChildFlag match{
+      case true => {
+        hasTextFlag match{
+          case true => <xml>{textString}</xml>.copy(label = tagString)
+          case false => <xml></xml>.copy(label = tagString)
+        }
+      }
+      case false => <xml/>.copy(label = tagString)
+    }
+
+    val fixnode = XMLUtil.addAttributes(node, attributeList.toMap)
+
+    if (hasChildFlag)
+      XMLUtil.addChild(fixnode, scala.xml.NodeSeq.fromSeq(nodeSeq))
+    else
+      fixnode
+  }
 }
